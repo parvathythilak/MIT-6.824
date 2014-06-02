@@ -1,0 +1,5 @@
+Test: Basic mapreduce ...
+Run mapreduce job :5100 824-mrinput.txt
+Split 824-mrinput.txt
+exit status 2
+FAIL	_/D_/GoWorkSpace/MIT-6.824/src/mapreduce	1.382s
