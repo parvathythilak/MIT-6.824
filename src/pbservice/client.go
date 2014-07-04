@@ -3,28 +3,26 @@ package pbservice
 import "viewservice"
 import "net/rpc"
 import "fmt"
-
-// You'll probably need to uncomment these:
-// import "time"
-// import "crypto/rand"
-// import "math/big"
-
-
+import "time"
+import "strconv"
 
 type Clerk struct {
-  vs *viewservice.Clerk
-  // Your declarations here
-}
+    vs  *viewservice.Clerk
 
+    id     int64
+    seqNum int64
+    me     string
+}
 
 func MakeClerk(vshost string, me string) *Clerk {
-  ck := new(Clerk)
-  ck.vs = viewservice.MakeClerk(me, vshost)
-  // Your ck.* initializations here
+    ck := new(Clerk)
+    ck.vs = viewservice.MakeClerk(me, vshost)
 
-  return ck
+    ck.me = me
+    ck.id = nrand()
+    ck.seqNum = 0
+    return ck
 }
-
 
 //
 // call() sends an RPC to the rpcname handler on server srv
@@ -43,20 +41,20 @@ func MakeClerk(vshost string, me string) *Clerk {
 // please don't change this function.
 //
 func call(srv string, rpcname string,
-          args interface{}, reply interface{}) bool {
-  c, errx := rpc.Dial("unix", srv)
-  if errx != nil {
-    return false
-  }
-  defer c.Close()
-    
-  err := c.Call(rpcname, args, reply)
-  if err == nil {
-    return true
-  }
+    args interface{}, reply interface{}) bool {
+    c, errx := rpc.Dial("unix", srv)
+    if errx != nil {
+        return false
+    }
+    defer c.Close()
 
-  fmt.Println(err)
-  return false
+    err := c.Call(rpcname, args, reply)
+    if err == nil {
+        return true
+    }
+
+    fmt.Println(err)
+    return false
 }
 
 //
@@ -67,10 +65,18 @@ func call(srv string, rpcname string,
 // says the key doesn't exist (has never been Put().
 //
 func (ck *Clerk) Get(key string) string {
+    ck.seqNum++
 
-  // Your code here.
+    args := &GetArgs{Key: key, ClientID: ck.id, SeqNum: ck.seqNum, Forwarded: false}
+    var reply GetReply
+    ok := call(ck.vs.Primary(), "PBServer.Get", args, &reply)
+    for !ok || reply.Err != OK {
+        DPrintf("client %s get value failed. Error: %s", ck.me, reply.Err)
+        ok = call(ck.vs.Primary(), "PBServer.Get", args, &reply)
+        time.Sleep(viewservice.PingInterval)
+    }
 
-  return "???"
+    return reply.Value
 }
 
 //
@@ -78,15 +84,32 @@ func (ck *Clerk) Get(key string) string {
 // must keep trying until it succeeds.
 //
 func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
+    ck.seqNum++
+    if dohash {
+        preValue := ck.Get(key)
+        _, err := strconv.Atoi(preValue)
+        if (preValue != "") && (err != nil) {
+            return "Error: cast error"
+        }
+        value = strconv.Itoa(int(hash(preValue + value)))
+    }
 
-  // Your code here.
-  return "???"
+    putArgs := &PutArgs{Key: key, Value: value, DoHash: dohash,
+        SeqNum: ck.seqNum, ClientID: ck.id, Forwarded: false}
+    var reply PutReply
+    ok := call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
+    for !ok || reply.Err != OK {
+        DPrintf("client received failed put request! OK: %t reply.Err: %s", ok, reply.Err)
+        ok = call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
+        time.Sleep(viewservice.PingInterval)
+    }
+    return reply.PreviousValue
 }
 
 func (ck *Clerk) Put(key string, value string) {
-  ck.PutExt(key, value, false)
+    ck.PutExt(key, value, false)
 }
 func (ck *Clerk) PutHash(key string, value string) string {
-  v := ck.PutExt(key, value, true)
-  return v
+    v := ck.PutExt(key, value, true)
+    return v
 }

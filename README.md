@@ -7,7 +7,7 @@ My Solutions to course MIT-6.825 2014 Spring labs.
 
 Because the project runs on Windows environment, I send RPCs via "TCP" rather than UNIX-domain sockets. So we should modify some code. On linux, we don't have to do the following.
 
-In `woker.go`, close the `net.Listener` when the worker is shuted down:
+In `woker.go`, close the `net.Listener` when the worker is shut down:
 
 ```go
 func (wk *Worker) Shutdown(args *ShutdownArgs, res *ShutdownReply) error {
