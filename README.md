@@ -42,7 +42,7 @@ c, errx := rpc.Dial("tcp", "127.0.0.1"+srv)
 
 run `go test` to get the result.
 
-## Lab2 (DONE)    
+## Lab2 (DONE)     
 
 ## Lab3 (PENDING)
 
