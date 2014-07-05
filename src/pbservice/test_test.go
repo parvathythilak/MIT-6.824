@@ -186,7 +186,7 @@ func TestAtMostOnce(t *testing.T) {
 
     v := ck.Get(k)
     if v != val {
-        fmt.Pringln("101")
+        fmt.Println("101")
         t.Fatalf("ck.Get() returned %v but expected %v\n", v, val)
     }
 
