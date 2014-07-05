@@ -10,8 +10,7 @@ import "os"
 import "syscall"
 import "math/rand"
 import "sync"
-
-//import "strconv"
+import "strconv"
 
 // Debugging
 const Debug = 1
@@ -73,7 +72,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
         return nil
     }
     if (pb.currentView.Primary == pb.me) && !handled {
-        if dohash {
+        if args.DoHash {
             preValue, exist := pb.kvData[args.Key]
             if !exist {
                 preValue = ""
