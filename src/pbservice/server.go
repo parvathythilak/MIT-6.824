@@ -117,7 +117,7 @@ func (pb *PBServer) PutUpdate(args *PutArgs, reply *PutReply) error {
         if args.Forwarded {
             reply.PreviousValue = pb.kvData[args.Key]
             pb.kvData[args.Key] = args.Value
-            handled := pb.HandleSequence(args.ClientID, args.SeqNum)
+            _ = pb.HandleSequence(args.ClientID, args.SeqNum)
             pb.preReply[args.ClientID][args.SeqNum] = args.Value
             reply.Err = OK
             DPrintf("... Backup done, no error (Put %s, %s)\n", args.Key, args.Value)
