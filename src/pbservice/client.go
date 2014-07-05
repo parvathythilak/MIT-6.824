@@ -85,15 +85,6 @@ func (ck *Clerk) Get(key string) string {
 //
 func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     ck.seqNum++
-    if dohash {
-        preValue := ck.Get(key)
-        DPrintf("PutExt dohash, preValue: %s\n", preValue)
-        _, err := strconv.Atoi(preValue)
-        if (preValue != "") && (err != nil) {
-            return "Error: cast error"
-        }
-        value = strconv.Itoa(int(hash(preValue + value)))
-    }
 
     putArgs := &PutArgs{Key: key, Value: value, DoHash: dohash,
         SeqNum: ck.seqNum, ClientID: ck.id, Forwarded: false}

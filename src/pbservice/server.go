@@ -73,6 +73,18 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
         return nil
     }
     if (pb.currentView.Primary == pb.me) && !handled {
+        if dohash {
+            preValue, exist := pb.kvData[args.Key]
+            if !exist {
+                preValue = ""
+            }
+            DPrintf("dohash, preValue: %s\n", preValue)
+            _, err := strconv.Atoi(preValue)
+            if (preValue != "") && (err != nil) {
+                return "Error: cast error"
+            }
+            args.Value = strconv.Itoa(int(hash(preValue + value)))
+        }
         // handle request
         if pb.currentView.Backup != "" {
             // forward to backup server until response is OK
