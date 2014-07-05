@@ -177,7 +177,7 @@ func TestAtMostOnce(t *testing.T) {
         v := strconv.Itoa(i)
         pv := ck.PutHash(k, v)
         if pv != val {
-            fmt.Println("100")
+            fmt.Println(i)
             t.Fatalf("ck.Puthash() returned %v but expected %v\n", pv, val)
         }
         h := hash(val + v)

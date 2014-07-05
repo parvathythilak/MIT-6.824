@@ -71,7 +71,7 @@ func (ck *Clerk) Get(key string) string {
     var reply GetReply
     ok := call(ck.vs.Primary(), "PBServer.Get", args, &reply)
     for !ok || reply.Err != OK {
-        DPrintf("client %s get value failed. Error: %s\n", ck.me, reply.Err)
+        DPrintf("client %s get value failed. OK: %s Error: %s\n", ck.me, ok, reply.Err)
         ok = call(ck.vs.Primary(), "PBServer.Get", args, &reply)
         time.Sleep(viewservice.PingInterval)
     }
@@ -87,7 +87,7 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     ck.seqNum++
     if dohash {
         preValue := ck.Get(key)
-        fmt.Println(preValue)
+        DPrintf("PutExt dohash, preValue: %s\n", preValue)
         _, err := strconv.Atoi(preValue)
         if (preValue != "") && (err != nil) {
             return "Error: cast error"
@@ -98,6 +98,7 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     putArgs := &PutArgs{Key: key, Value: value, DoHash: dohash,
         SeqNum: ck.seqNum, ClientID: ck.id, Forwarded: false}
     var reply PutReply
+    DPrintf("PutExt put key: %s value: %s dohash:%s\n", key, value, dohash)
     ok := call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
     for !ok || reply.Err != OK {
         DPrintf("client received failed put request! OK: %t reply.Err: %s\n", ok, reply.Err)
