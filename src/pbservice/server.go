@@ -160,7 +160,7 @@ func (pb *PBServer) Get(args *GetArgs, reply *GetReply) error {
     return nil
 }
 
-func (pb *PBServer) GetUpdate(args *GetArgs, reply *GetReply) {
+func (pb *PBServer) GetUpdate(args *GetArgs, reply *GetReply) error {
     if pb.me == pb.currentView.Backup {
         if args.Forwarded {
             reply.Value = pb.kvData[args.Key]
@@ -174,6 +174,7 @@ func (pb *PBServer) GetUpdate(args *GetArgs, reply *GetReply) {
         reply.Err = ErrWrongServer
         reply.Value = ""
     }
+    return nil
 }
 
 // ping the viewserver periodically.
