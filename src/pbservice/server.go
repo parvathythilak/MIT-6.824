@@ -94,6 +94,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
             if !backupRespond || (backupReply.Err != OK) || (backupReply.PreviousValue != pb.kvData[args.Key]) {
                 // can't RCP to backup, or backup is out-of-date
                 // we should update the backup database first.
+                DPrintf("update backup first.\n")
                 pb.updateBackup = true
                 reply.PreviousValue = ""
                 reply.Err = "ErrForwarded"
@@ -105,7 +106,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
         pb.kvData[args.Key] = args.Value
         pb.preReply[args.ClientID][args.SeqNum] = args.Value
         reply.Err = OK
-        DPrintf("Put() done, no error (Put %s, %s)\n", args.Key, args.Value)
+        DPrintf("Put() done, no error. PreValue: %s (Put %s, %s)\n", reply.PreviousValue, args.Key, args.Value)
     }
 
     return nil
