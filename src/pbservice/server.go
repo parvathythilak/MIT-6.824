@@ -13,7 +13,7 @@ import "sync"
 import "strconv"
 
 // Debugging
-const Debug = 1
+const Debug = 0
 
 func DPrintf(format string, a ...interface{}) (n int, err error) {
     if Debug > 0 {
@@ -94,7 +94,6 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
             if !backupRespond || (backupReply.Err != OK) || (backupReply.PreviousValue != pb.kvData[args.Key]) {
                 // can't RCP to backup, or backup is out-of-date
                 // we should update the backup database first.
-                DPrintf("update backup first.\n")
                 pb.updateBackup = true
                 reply.PreviousValue = ""
                 reply.Err = "ErrForwarded"
@@ -104,7 +103,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
 
         reply.PreviousValue = pb.kvData[args.Key]
         pb.kvData[args.Key] = args.Value
-        pb.preReply[args.ClientID][args.SeqNum] = args.Value
+        pb.preReply[args.ClientID][args.SeqNum] = reply.PreviousValue // should previousValue rather than args.Value
         reply.Err = OK
         DPrintf("Put() done, no error. PreValue: %s (Put %s, %s)\n", reply.PreviousValue, args.Key, args.Value)
     }
