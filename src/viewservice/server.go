@@ -172,7 +172,7 @@ func StartServer(me string) *ViewServer {
     // change "unix" to "tcp" to use over a network.
     os.Remove(vs.me) // only needed for "unix"
     //l, e := net.Listen("unix", vs.me)
-    l, e := net.Listen("tcp", vs.me)
+    l, e := net.Listen("unix", vs.me)
     if e != nil {
         log.Fatal("listen error: ", e)
     }
