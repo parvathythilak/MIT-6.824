@@ -80,9 +80,9 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
             DPrintf("dohash, preValue: %s\n", preValue)
             _, err := strconv.Atoi(preValue)
             if (preValue != "") && (err != nil) {
-                return "Error: cast error"
+                fmt.Println("Error: cast error")
             }
-            args.Value = strconv.Itoa(int(hash(preValue + value)))
+            args.Value = strconv.Itoa(int(hash(preValue + args.Value)))
         }
         // handle request
         if pb.currentView.Backup != "" {
