@@ -160,7 +160,7 @@ func (pb *PBServer) Get(args *GetArgs, reply *GetReply) error {
     return nil
 }
 
-func (pb *PBServer) GetUpddate(args *GetArgs, reply *GetReply) {
+func (pb *PBServer) GetUpdate(args *GetArgs, reply *GetReply) {
     if pb.me == pb.currentView.Backup {
         if args.Forwarded {
             reply.Value = pb.kvData[args.Key]
