@@ -56,7 +56,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
     handled := pb.HandleSequence(args.ClientID, args.SeqNum)
 
     if pb.currentView.Primary != pb.me {
-        DPrintf("I(%s) am not primary", pb.me)
+        DPrintf("I(%s) am not primary\n", pb.me)
         reply.Err = ErrWrongServer
         return nil
     }
@@ -67,7 +67,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
         return nil
     }
     if (pb.currentView.Primary == pb.me) && handled {
-        DPrintf("client %d, sequence %d has been handled.", args.ClientID, args.SeqNum)
+        DPrintf("client %d, sequence %d has been handled.\n", args.ClientID, args.SeqNum)
         reply.Err = OK
         reply.PreviousValue = pb.preReply[args.ClientID][args.SeqNum]
         return nil
@@ -94,7 +94,7 @@ func (pb *PBServer) Put(args *PutArgs, reply *PutReply) error {
         pb.kvData[args.Key] = args.Value
         pb.preReply[args.ClientID][args.SeqNum] = args.Value
         reply.Err = OK
-        DPrintf("Put() done, no error (Put %s, %s)", args.Key, args.Value)
+        DPrintf("Put() done, no error (Put %s, %s)\n", args.Key, args.Value)
     }
 
     return nil
@@ -109,9 +109,9 @@ func (pb *PBServer) PutUpdate(args *PutArgs, reply *PutReply) error {
             pb.HandleSequence(args.ClientID, args.SeqNum)
             pb.preReply[args.ClientID][args.SeqNum] = args.Value
             reply.Err = OK
-            DPrintf("... Backup done, no error (Put %s, %s)", args.Key, args.Value)
+            DPrintf("... Backup done, no error (Put %s, %s)\n", args.Key, args.Value)
         } else {
-            DPrintf("... Ignoring command, primary")
+            DPrintf("... Ignoring command, primary\n")
             reply.Err = "Error: Command not from primary"
             reply.PreviousValue = ""
         }
@@ -126,7 +126,7 @@ func (pb *PBServer) Get(args *GetArgs, reply *GetReply) error {
     defer pb.kvLock.Unlock()
 
     amPrimary := (pb.currentView.Primary == pb.me)
-
+    handled := pb.HandleSequence(args.ClientID, args.SeqNum)
     if !amPrimary {
         reply.Err = ErrWrongServer
         reply.Value = ""
@@ -140,6 +140,12 @@ func (pb *PBServer) Get(args *GetArgs, reply *GetReply) error {
     }
 
     if amPrimary {
+        if handled {
+            reply.Err = OK
+            reply.Value = pb.preReply[args.ClientID][args.SeqNum]
+            DPrintf("has handled, return old value %s"\n, reply.Value)
+            return nil
+        }
         if pb.currentView.Backup != "" {
             backupReply := new(GetReply)
             args.Forwarded = true
@@ -165,7 +171,7 @@ func (pb *PBServer) GetUpdate(args *GetArgs, reply *GetReply) error {
         if args.Forwarded {
             reply.Value = pb.kvData[args.Key]
             reply.Err = OK
-            DPrintf("... Backup done, no error, reply is %s", reply.Value)
+            DPrintf("... Backup done, no error, reply is %s\n", reply.Value)
         } else {
             reply.Err = ErrForwarded
             reply.Value = ""
@@ -205,7 +211,7 @@ func (pb *PBServer) tick() {
 }
 
 func (pb *PBServer) UpdateBackupDatabase(backup string) {
-    DPrintf("\nUpdating backup server %s", backup)
+    DPrintf("\nUpdating backup server %s\n", backup)
     updateArgs := new(UpdateDatabaseArgs)
     updateArgs.Caller = pb.me
     updateArgs.KvData = pb.kvData
@@ -214,9 +220,9 @@ func (pb *PBServer) UpdateBackupDatabase(backup string) {
     updateReply := new(UpdateDatabaseReply)
     call(backup, "PBServer.UpdateDatabase", updateArgs, &updateReply)
     if updateReply.Err != OK {
-        DPrintf("\n\t%s", updateReply.Err)
+        DPrintf("\n\t%s\n", updateReply.Err)
     } else {
-        DPrintf("\n\tDone updating backup %s", backup)
+        DPrintf("\n\tDone updating backup %s\n", backup)
         pb.updateBackup = false
     }
 }
@@ -230,13 +236,13 @@ func (pb *PBServer) UpdateDatabase(args *UpdateDatabaseArgs, reply *UpdateDataba
 
     // If I'm not the backup, return error
     if view.Backup != pb.me {
-        DPrintf("UpdateDatabase: %s I'm not the backup", pb.me)
+        DPrintf("UpdateDatabase: %s I'm not the backup\n", pb.me)
         reply.Err = ErrWrongServer
         return nil
     }
 
     if view.Primary != args.Caller {
-        DPrintf("UpdateDatabase: %s caller is not primary", args.Caller)
+        DPrintf("UpdateDatabase: %s caller is not primary\n", args.Caller)
         reply.Err = ErrWrongServer
         return nil
     }

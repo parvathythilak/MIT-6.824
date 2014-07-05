@@ -71,7 +71,7 @@ func (ck *Clerk) Get(key string) string {
     var reply GetReply
     ok := call(ck.vs.Primary(), "PBServer.Get", args, &reply)
     for !ok || reply.Err != OK {
-        DPrintf("client %s get value failed. Error: %s", ck.me, reply.Err)
+        DPrintf("client %s get value failed. Error: %s\n", ck.me, reply.Err)
         ok = call(ck.vs.Primary(), "PBServer.Get", args, &reply)
         time.Sleep(viewservice.PingInterval)
     }
@@ -100,7 +100,7 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     var reply PutReply
     ok := call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
     for !ok || reply.Err != OK {
-        DPrintf("client received failed put request! OK: %t reply.Err: %s", ok, reply.Err)
+        DPrintf("client received failed put request! OK: %t reply.Err: %s\n", ok, reply.Err)
         ok = call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
         time.Sleep(viewservice.PingInterval)
     }
