@@ -189,7 +189,7 @@ func (pb *PBServer) tick() {
     }
 
     amPrimary := (pb.currentView.Primary == pb.me)
-    amBackup := (pb.currentView.Backup == pb.me)
+    // amBackup := (pb.currentView.Backup == pb.me)
 
     if amPrimary && (view.Viewnum != pb.currentView.Viewnum) && (view.Backup != "") {
         // we should update the backup cause me just bacame primary or backup changed
