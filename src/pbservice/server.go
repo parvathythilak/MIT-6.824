@@ -143,7 +143,7 @@ func (pb *PBServer) Get(args *GetArgs, reply *GetReply) error {
         if handled {
             reply.Err = OK
             reply.Value = pb.preReply[args.ClientID][args.SeqNum]
-            DPrintf("has handled, return old value %s"\n, reply.Value)
+            DPrintf("has handled, return old value %s\n", reply.Value)
             return nil
         }
         if pb.currentView.Backup != "" {
