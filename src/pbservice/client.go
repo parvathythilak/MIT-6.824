@@ -87,6 +87,7 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     ck.seqNum++
     if dohash {
         preValue := ck.Get(key)
+        fmt.Println(preValue)
         _, err := strconv.Atoi(preValue)
         if (preValue != "") && (err != nil) {
             return "Error: cast error"
