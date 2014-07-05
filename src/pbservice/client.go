@@ -95,6 +95,7 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     for !ok || reply.Err != OK {
         DPrintf("client received failed put request! OK: %t reply.Err: %s\n", ok, reply.Err)
         ok = call(ck.vs.Primary(), "PBServer.Put", putArgs, &reply)
+        DPrintf("reply previous value: %s\n", reply.PreviousValue)
         time.Sleep(viewservice.PingInterval)
     }
     return reply.PreviousValue
