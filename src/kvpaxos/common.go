@@ -5,6 +5,12 @@ import "hash/fnv"
 const (
   OK = "OK"
   ErrNoKey = "ErrNoKey"
+  ErrPut = "Undefined Put Error"
+  ErrGet = "Undefined Get Error"
+  Nobody = "Nobody"
+  Put = "Put"
+  PutHash = "PutHash"
+  Get = "Get"
 )
 type Err string
 
@@ -16,6 +22,8 @@ type PutArgs struct {
   // You'll have to add definitions here.
   // Field names must start with capital letters,
   // otherwise RPC will break.
+  From string
+  SeqNum int
 }
 
 type PutReply struct {
@@ -26,6 +34,8 @@ type PutReply struct {
 type GetArgs struct {
   Key string
   // You'll have to add definitions here.
+  From string
+  SeqNum int
 }
 
 type GetReply struct {

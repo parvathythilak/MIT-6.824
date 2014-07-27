@@ -2,10 +2,17 @@ package kvpaxos
 
 import "net/rpc"
 import "fmt"
+import "crypto/rand"
+import "math/big"
+import "strconv"
+import "math"
+//import "log"
 
 type Clerk struct {
   servers []string
   // You will have to modify this struct.
+  me string
+  seq int
 }
 
 
@@ -13,6 +20,8 @@ func MakeClerk(servers []string) *Clerk {
   ck := new(Clerk)
   ck.servers = servers
   // You'll have to add code here.
+  ck.me = strconv.FormatInt(nrand(), 10)
+  ck.seq = 0
   return ck
 }
 
@@ -55,8 +64,24 @@ func call(srv string, rpcname string,
 // keeps trying forever in the face of all other errors.
 //
 func (ck *Clerk) Get(key string) string {
-  // You will have to modify this function.
-  return ""
+	var reply GetReply	
+	args := &GetArgs{key, ck.me, ck.seq}
+	dest := int(math.Mod(float64(ck.seq), float64(len(ck.servers))))
+	ck.seq++ //can do this bc only one outstanding req
+	ok := call(ck.servers[dest], "KVPaxos.Get", args, &reply);
+//	fmt.Println("ok: ", ok, " reply.Err: ", reply.Err)
+	for !ok || reply.Err != "" {
+	//	fmt.Println("call Get")
+		if reply.Err == ErrNoKey {
+			return ""
+		}
+		reply.Err = ""
+		//try a new server
+		dest = int(math.Mod(float64(dest+1), float64(len(ck.servers))))
+		ok = call(ck.servers[dest], "KVPaxos.Get", args, &reply);
+	}
+//	fmt.Println("reply.Value: ", reply.Value)
+	return reply.Value
 }
 
 //
@@ -64,8 +89,18 @@ func (ck *Clerk) Get(key string) string {
 // keeps trying until it succeeds.
 //
 func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
-  // You will have to modify this function.
-  return ""
+	var reply PutReply	
+	args := &PutArgs{key, value, dohash, ck.me, ck.seq}
+	dest := int(math.Mod(float64(ck.seq), float64(len(ck.servers))))
+	ck.seq++ //can do this bc only one outstanding req
+	ok := call(ck.servers[dest], "KVPaxos.Put", args, &reply);
+	for !ok || reply.Err != "" {
+		//try a new server
+		dest = int(math.Mod(float64(dest+1), float64(len(ck.servers))))
+		reply.Err = ""
+		ok = call(ck.servers[dest], "KVPaxos.Put", args, &reply);
+	}
+	return reply.PreviousValue
 }
 
 func (ck *Clerk) Put(key string, value string) {
@@ -74,4 +109,11 @@ func (ck *Clerk) Put(key string, value string) {
 func (ck *Clerk) PutHash(key string, value string) string {
   v := ck.PutExt(key, value, true)
   return v
+}
+
+func nrand() int64 {
+	max := big.NewInt(int64(1) << 62)
+	bigx, _ := rand.Int(rand.Reader, max)
+	x := bigx.Int64()
+  return x
 }
