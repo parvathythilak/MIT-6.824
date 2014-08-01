@@ -42,11 +42,19 @@ c, errx := rpc.Dial("tcp", "127.0.0.1"+srv)
 
 run `go test` to get the result.
 
-## Lab2 (DONE) 
+## Lab2 (DONE)
+
+Primary/Backup Key/Value Service
+
+(Developing in Windows is like **, so move to Linux.)
 
 ## Lab3 (DONE)
 
+Paxos-based Key/Value Service: using Paxos to manage the replication of a key/value store. 
+
 ## Lab4 (Lab4a DONE, Lab4b PENDING)
+
+Sharded Key/Value Service: build a key/value storage system that "shards," or partitions, the keys over a set of replica groups.
 
 ------
 
