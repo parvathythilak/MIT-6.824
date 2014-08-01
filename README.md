@@ -44,25 +44,25 @@ c, errx := rpc.Dial("tcp", "127.0.0.1"+srv)
 
 run `go test` to get the result.
 
-## Lab2 (DONE)
+## Lab2 (Primary/Backup Key/Value Service)
 
 pkg:`viewservice`, `pbservice`
 
-Primary/Backup Key/Value Service
+Use a primary/backup replication for the key/value database, assisted by a view service that decides which machines are alive.
 
 (Developing in Windows is like **, so move to Linux.)
 
-## Lab3 (DONE)
+## Lab3 (Paxos-based Key/Value Service)
 
 pkg:`paxos`, `kvpaxos`
 
-Paxos-based Key/Value Service: using Paxos to manage the replication of a key/value store. 
+Use Paxos to manage the replication of a key/value store. 
 
 ## Lab4 (Lab4a DONE, Lab4b PENDING)
 
 pkg:`shardmaster`, `shardkv`
 
-Sharded Key/Value Service: build a key/value storage system that "shards," or partitions, the keys over a set of replica groups.
+Build a key/value storage system that "shards," or partitions, the keys over a set of replica groups.
 
 ------
 
