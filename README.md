@@ -44,9 +44,9 @@ run `go test` to get the result.
 
 ## Lab2 (DONE) 
 
-## Lab3 (PENDING)
+## Lab3 (DONE)
 
-## Lab4 (PENDING)
+## Lab4 (Lab4a DONE, Lab4b PENDING)
 
 ------
 
