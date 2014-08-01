@@ -5,6 +5,8 @@ My Solutions to course MIT-6.825 2014 Spring labs.
 
 ## Lab1 (DONE)
 
+pkg:`main`, `mapreduce`
+
 Because the project runs on Windows environment, I send RPCs via "TCP" rather than UNIX-domain sockets. So we should modify some code. On linux, we don't have to do the following.
 
 In `woker.go`, close the `net.Listener` when the worker is shut down:
@@ -44,15 +46,21 @@ run `go test` to get the result.
 
 ## Lab2 (DONE)
 
+pkg:`viewservice`, `pbservice`
+
 Primary/Backup Key/Value Service
 
 (Developing in Windows is like **, so move to Linux.)
 
 ## Lab3 (DONE)
 
+pkg:`paxos`, `kvpaxos`
+
 Paxos-based Key/Value Service: using Paxos to manage the replication of a key/value store. 
 
 ## Lab4 (Lab4a DONE, Lab4b PENDING)
+
+pkg:`shardmaster`, `shardkv`
 
 Sharded Key/Value Service: build a key/value storage system that "shards," or partitions, the keys over a set of replica groups.
 
