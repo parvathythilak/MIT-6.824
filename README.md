@@ -3,7 +3,7 @@ MIT-6.824
 
 My Solutions to course MIT-6.825 2014 Spring labs.
 
-## Lab1 (DONE)
+## Lab1 (MapReduce)
 
 pkg:`main`, `mapreduce`
 
@@ -58,7 +58,7 @@ pkg:`paxos`, `kvpaxos`
 
 Use Paxos to manage the replication of a key/value store. 
 
-## Lab4 (Lab4a DONE, Lab4b PENDING)
+## Lab4 (Sharded Key/Value Service)
 
 pkg:`shardmaster`, `shardkv`
 
