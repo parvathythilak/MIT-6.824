@@ -17,7 +17,7 @@ func MakeClerk(servers []string) *Clerk {
     ck.servers = servers
 
     ck.seq = 0
-    ck.me = strconv.Itoa(nrand())
+    ck.me = strconv.FormatInt(nrand(), 10)
 
     return ck
 }
@@ -87,6 +87,8 @@ func (ck *Clerk) PutExt(key string, value string, dohash bool) string {
     var reply PutReply
     args := &PutArgs{key, value, dohash, ck.me, ck.seq}
     to := rand.Int() % len(ck.servers)
+
+    ck.seq += 1 // unique sequence number
 
     ok := call(ck.servers[to], "KVPaxos.Put", args, &reply)
     for !ok || reply.Err != OK {

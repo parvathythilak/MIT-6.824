@@ -66,11 +66,11 @@ func (kv *KVPaxos) Get(args *GetArgs, reply *GetReply) error {
     seq, ch := kv.getSeqChan()
 
     proposedOp := Op{From: args.From, ClerkSeq: args.SeqNum, PaxosSeq: seq,
-        Type: Get, Key: args.Key}
+        Type: GET, Key: args.Key}
     kv.px.Start(seq, proposedOp)
 
     resultOp := <-ch
-
+    DPrintf("Get from:%s Key: %s, seq: %d", args.From, args.Key, seq)
     if resultOp.From != args.From || resultOp.ClerkSeq != args.SeqNum {
         // end this sequence
         reply.Err = ErrGet
@@ -80,6 +80,7 @@ func (kv *KVPaxos) Get(args *GetArgs, reply *GetReply) error {
         kv.mu.Unlock()
         return nil
     }
+    DPrintf("Get result: %s", resultOp.Value)
     reply.Err = resultOp.Err
     reply.Value = resultOp.Value
     kv.mu.Lock()
@@ -93,12 +94,13 @@ func (kv *KVPaxos) Put(args *PutArgs, reply *PutReply) error {
     seq, ch := kv.getSeqChan()
     tp := PUT
     if args.DoHash {
-        tp := PUTHASH
+        tp = PUTHASH
     }
 
     proposedOp := Op{From: args.From, ClerkSeq: args.SeqNum, PaxosSeq: seq,
         Type: tp, Key: args.Key, Value: args.Value}
     kv.px.Start(seq, proposedOp)
+    DPrintf("Put from:%s Key: %s, Value: %s, seq: %d", args.From, args.Key, args.Value, seq)
     resultOp := <-ch
     if resultOp.From != args.From || resultOp.ClerkSeq != args.SeqNum {
         reply.Err = ErrPut
@@ -108,7 +110,7 @@ func (kv *KVPaxos) Put(args *PutArgs, reply *PutReply) error {
         kv.mu.Unlock()
         return nil
     }
-
+    DPrintf("Put result: %s Err: %s", resultOp.PreviousValue, resultOp.Err)
     reply.Err = resultOp.Err
     reply.PreviousValue = resultOp.PreviousValue
     kv.mu.Lock()
@@ -122,13 +124,15 @@ func (kv *KVPaxos) Put(args *PutArgs, reply *PutReply) error {
 // do the Get/Put/PutHash oprations
 //
 func (kv *KVPaxos) doOp(seq int, op *Op) {
-    isHandled := fasle
+    DPrintf("doOp op.Key: %s op.Type: %s op.Value: %s", op.Key, op.Type, op.Value)
+    isHandled := false
     preOp := &Op{}
     if dup, ok := kv.preReply[op.From]; ok {
         if dup.ClerkSeq == op.ClerkSeq {
             // the sequence is handled, and it's the newest
             isHandled = true
             preOp = dup
+            DPrintf("the sequence has been handled: %d", op.ClerkSeq)
         } else if dup.ClerkSeq > op.ClerkSeq {
             // the sequence is out-of-date
             isHandled = true
@@ -139,7 +143,7 @@ func (kv *KVPaxos) doOp(seq int, op *Op) {
         // handle it!
         if op.Type == GET {
             if val, ok := kv.kvData[op.Key]; ok {
-                op.Value = v
+                op.Value = val
                 op.Err = OK
             } else {
                 op.Err = ErrNoKey
@@ -148,11 +152,13 @@ func (kv *KVPaxos) doOp(seq int, op *Op) {
             op.PreviousValue = kv.kvData[op.Key]
             kv.kvData[op.Key] = op.Value
             op.Err = OK
+            DPrintf("PUT Err: %s, Key: %s, Val: %s", op.Err, op.Key, op.PreviousValue)
         } else if op.Type == PUTHASH {
             prevVal := kv.kvData[op.Key]
             op.PreviousValue = prevVal
             kv.kvData[op.Key] = strconv.Itoa(int(hash(prevVal + op.Value)))
             op.Err = OK
+            DPrintf("PUTHASH Err: %s, Val: %s", op.Err, op.PreviousValue)
         }
         // save the current result
         kv.preReply[op.From] = op
@@ -161,7 +167,15 @@ func (kv *KVPaxos) doOp(seq int, op *Op) {
             // out-of-date opration
             op.Err = ErrOutOfDate
         } else {
-            op = preOp
+            //DO NOT USE "op = preOp", cz preOp is reference
+            op.ClerkSeq = preOp.ClerkSeq
+            op.Err = preOp.Err
+            op.From = preOp.From
+            op.Key = preOp.Key
+            op.PaxosSeq = preOp.PaxosSeq
+            op.PreviousValue = preOp.PreviousValue
+            op.Type = preOp.Type
+            op.Value = preOp.Value
         }
     }
     kv.maxInstanceID = seq
@@ -182,7 +196,7 @@ func (kv *KVPaxos) updateStatus() {
             kv.mu.Lock()
             if op.From != NoOp {
                 // do Get/Put/PutHash
-                doOp(seq, &op)
+                kv.doOp(seq, &op)
             } else {
                 // the instance is ended
                 kv.maxInstanceID = seq
@@ -202,7 +216,7 @@ func (kv *KVPaxos) updateStatus() {
                 if !isEnd {
                     // we've slept Long enough, end this sequence loop
                     sleepTime = 10 * time.Millisecond
-                    kv.px.Start(Seq, Op{From: NoOp})
+                    kv.px.Start(seq, Op{From: NoOp})
                     time.Sleep(time.Millisecond)
                     isEnd = true
                 }
@@ -239,8 +253,6 @@ func StartServer(servers []string, me int) *KVPaxos {
     kv.preReply = make(map[string]*Op)
     kv.seqChan = make(map[int]chan *Op)
     kv.maxInstanceID = -1
-
-    go kv.updateStatus()
 
     rpcs := rpc.NewServer()
     rpcs.Register(kv)
@@ -285,7 +297,7 @@ func StartServer(servers []string, me int) *KVPaxos {
             }
         }
     }()
-
+    go kv.updateStatus()
     return kv
 }
 
