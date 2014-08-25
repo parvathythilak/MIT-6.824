@@ -1,7 +1,7 @@
 MIT-6.824
 =========
 
-My Solutions to course MIT-6.825 2014 Spring labs.
+My Solutions to course [MIT-6.824](http://css.csail.mit.edu/6.824/2014/ "6.824: Distributed Systems Spring 2014") ) 2014 Spring labs.
 
 ## Lab1 (MapReduce)
 
